@@ -1,7 +1,8 @@
+using Godot.Collections;
+
 public class SyntaxToken
 {
     public string Text;
-    public TokenType Type;
     public SyntaxKind Kind;
     public object Value;
 
@@ -12,11 +13,35 @@ public class SyntaxToken
         Value = value;
 
     }
-}
- public enum TokenType
- {
-    NumericOperation,
-    BooleanOperation
+
+    public bool IsInstruction()
+    {
+        if(Kind == SyntaxKind.SpawnToken || Kind == SyntaxKind.ColorToken || Kind == SyntaxKind.SizeToken
+        || Kind == SyntaxKind.DrawLineToken || Kind == SyntaxKind.DrawCircleToken || Kind == SyntaxKind.DrawRectangleToken) 
+        return true;
+        else return false;
+    }
+    public bool IsNumericOperation()
+    {
+        if(Kind == SyntaxKind.PlusToken || Kind == SyntaxKind.MinusToken || Kind == SyntaxKind.StarToken
+        || Kind == SyntaxKind.DoubleStarToken || Kind == SyntaxKind.EqualsToken || Kind == SyntaxKind.NotEqualsToken
+        || Kind == SyntaxKind.LessToken || Kind == SyntaxKind.LessToken || Kind == SyntaxKind.PorcentualToken ) 
+        return true;
+        else return false;
+    }
+    public bool IsBooleanOperation()
+    {
+        if(Kind == SyntaxKind.AndToken || Kind == SyntaxKind.OrToken) return true; 
+        else return false;
+    }
+    public bool IsFunction()
+    {
+        if(Kind == SyntaxKind.GetActualXToken || Kind == SyntaxKind.GetActualYToken || Kind == SyntaxKind.GetCanvasSizeToken
+        || Kind == SyntaxKind.IsBrushColorToken || Kind == SyntaxKind.IsBrushSizeToken || Kind == SyntaxKind.IsCanvasColorToken 
+        || Kind == SyntaxKind.GetColorCountToken)
+        return true; 
+        else return false;
+    }
 }
 
  public enum SyntaxKind
@@ -61,5 +86,8 @@ public class SyntaxToken
     EndOfFileToken,
     StringToken,
     NotEqualsToken,
-    EndOfLineToken
+    EndOfLineToken,
+    OpenCorcheteToken,
+    CloseCorcheteToken,
+    CapturedTagToken
 }

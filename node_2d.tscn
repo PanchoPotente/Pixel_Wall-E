@@ -19,10 +19,11 @@ texture_region_size = Vector2i(1, 1)
 tile_size = Vector2i(1, 1)
 sources/1 = SubResource("TileSetAtlasSource_1f5dy")
 
-[node name="MainScene" type="Node2D" node_paths=PackedStringArray("tileMap", "camera")]
+[node name="MainScene" type="Node2D" node_paths=PackedStringArray("tileMap", "camera", "codeEdit")]
 script = ExtResource("1_y2xsy")
 tileMap = NodePath("WorkZone")
 camera = NodePath("Camera2D")
+codeEdit = NodePath("CanvasLayer/CodeEdit")
 
 [node name="WorkZone" type="TileMapLayer" parent="."]
 tile_set = SubResource("TileSet_5nokp")
@@ -48,10 +49,11 @@ offset_top = 503.0
 offset_bottom = 648.0
 grow_horizontal = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+[node name="Execute" type="Button" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
+text = "Execute"
 
-[node name="Button" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
 
 [node name="CodeEdit" type="CodeEdit" parent="CanvasLayer"]
@@ -59,3 +61,6 @@ offset_left = 662.0
 offset_top = 14.0
 offset_right = 1136.0
 offset_bottom = 498.0
+line_folding = true
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Execute" to="." method="ExecuteButton"]

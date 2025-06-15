@@ -23,7 +23,7 @@ class Index
 
     public static bool IsKeyWord(string word)
     {   
-        return keyWords.ContainsKey("word");
+        return keyWords.ContainsKey(word);
     }
 
     public static SyntaxKind GetKind(string word)

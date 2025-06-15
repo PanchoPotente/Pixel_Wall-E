@@ -7,8 +7,16 @@ public partial class Canvas : Node
     public static int PositionY = 0;
     public static Color BrushColor = Color.Transparent;
     public static int BrushSize = 1;
-    public static Color[,] WorkZone = ClearCanvas(100);
+    public static Color[,] WorkZone = ClearCanvas(10);
 
+    public static void Reset()
+    {
+        PositionX = 0;
+        PositionY = 0;
+        BrushColor = Color.Transparent;
+        BrushSize = 1;
+        WorkZone = ClearCanvas(10);
+    }
     public static void Spawn(int x, int y)
     {
         if (IsInRange(x,y)) 

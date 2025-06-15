@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 class Lexer
 {
-    private readonly string _text;
+    private string[] allLines;
+    private int line;
+    private string _text{get => allLines[line];}
     private int _position;
     private char Current
     {
@@ -15,11 +18,22 @@ class Lexer
     public Lexer(string text)
     {
         _position = 0;
-        _text = NormalizeLine(text);
+        line = 0;
+        allLines = text.Split('\n');
+        for (int i = 0; i < allLines.Length; i++)
+        {
+            allLines[i] = NormalizeLine(allLines[i]);
+        }
     }
+    void NextLine()
+    {
+        line++;
+        _position = 0;
+    }
+
     private char Peek(int offset)
     {
-        if(_position + offset >= _text.Length) return '\0';
+        if(_position + offset >= _text.Length) return '\n';
         else return _text[_position + offset];
     }
     private void Next() => _position++;
@@ -31,7 +45,11 @@ class Lexer
         {
             string word = CompleteWord();
             if(Index.IsKeyWord(word)) return new SyntaxToken(word, Index.GetKind(word), null);
-            else if(Peek(1) == '\0') return new SyntaxToken(word, SyntaxKind.TagToken, null);
+            else if(Peek(1) == '\n') 
+            {
+                TagIndex.Add(word,line);
+                return new SyntaxToken(word, SyntaxKind.TagToken, null);
+            }
             else return new SyntaxToken(word, SyntaxKind.VariableToken, null);
         }
 
@@ -102,14 +120,20 @@ class Lexer
             Next();
             return new SyntaxToken("!=", SyntaxKind.NotEqualsToken, null);
         }
-        else if(Current == '\0') return new SyntaxToken("\0", SyntaxKind.EndOfLineToken, null);
+        else if(Current == ']') return new SyntaxToken("]",SyntaxKind.CloseCorcheteToken, null);
+        else if(Current == '\n') 
+        {
+            line++;
+            return new SyntaxToken("\n", SyntaxKind.EndOfLineToken, null);
+        }
+        
         else throw new SyntacticError($"La expresion {Current} es un token Invalido");
         
     }
 
     private void SkipWhiteSpace()
     {
-        while(char.IsWhiteSpace(Current))
+        while(Current == ' ')
         {
             Next();
         }
@@ -140,22 +164,34 @@ class Lexer
     {
         Next();
         string word = "";
-        while(Peek(1) != '"')
+        while(Current != '\"')
         {
             word += Current;
             Next();
-            if(Peek(1) == '\0') throw new SyntacticError("Se esperaba un \" ");
+            if(Current == '\n') throw new SyntacticError("Se esperaba un \" ");
         }
         return new SyntaxToken(word, SyntaxKind.StringToken, null);
     }
-    private string NormalizeLine(string line)
+    private string NormalizeLine(string character)
     {
         int i = 0;
-        while (line[line.Length - 1 - i] == ' ')
+        while ( character.Length - 1 - i >= 0 && character[character.Length - 1 - i] == ' ')
         {
             i++;
         }
-        return line.Substring( 0, line.Length - i);
+        return character.Substring( 0, character.Length - i);
+    }
+
+    private SyntaxToken CompleteTag()
+    {
+        Next();
+        SkipWhiteSpace();
+        if(char.IsLetter(Current))
+        {
+            string word = CompleteWord();
+            if(word.Length > 0) return new SyntaxToken(word, SyntaxKind.CapturedTagToken, null);
+        }
+        throw new SyntacticError("La etiqueta no tiene un nombre valido");
     }
 
     public SyntaxToken[] GetLine()
@@ -170,5 +206,16 @@ class Lexer
         }
         while (token.Kind != SyntaxKind.EndOfLineToken);
         return TokenLine.ToArray();
+    }
+
+    public SyntaxToken[][] GetAllLines()
+    {
+        List<SyntaxToken[]> list = new List<SyntaxToken[]>(0);
+        while(line < allLines.Length)
+        {
+            list.Add(GetLine());
+            NextLine();
+        }
+        return list.ToArray();
     }
 }

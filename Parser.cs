@@ -1,91 +1,232 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Godot;
 
-class Parser
+class ExpressionParser
 {
 
-    SyntaxToken current;
-    List<SyntaxToken> syntaxTokens;
-    int position = 1;
+    private readonly SyntaxToken[][] code;
+    private int line = 0;
+    private SyntaxToken[] tokens {get => code[line];}
+    private int position = 0;
 
-    public Parser(List<SyntaxToken> syntaxTokens)
+    SyntaxToken current {get => tokens[position];}
+    public ExpressionParser(SyntaxToken[][] code)
     {
-        this.syntaxTokens = syntaxTokens;
-        current = syntaxTokens[0];
+        this.code = code;
+    }
+
+    void MatchKind(SyntaxKind kind)
+    {
+        if (current.Kind == kind) Next();
+        else throw new SemanticError("Token " + current.Kind + " invalido. Se esperaba " + kind + ".");
+    }
+    void Next() => position++;
+    void NextLine() => SetLine(line + 1);
+    void SetLine(int n)
+    {
+        line = n;
+        position = 0;
     }
 
 
-    void MatchKind(SyntaxKind key)
+    public void ParseLine()
     {
-        if(key == current.Kind)  
-            current = syntaxTokens[position++];
-        else
-            throw new Exception("Token " + current.Kind + " invalido. Se esperaba " + key + ".");
-    }
-
-    /*public void Language()
-    {
-        if(current.Kind == SyntaxKind.SpawnToken)   {
-            ComandoSpawn();
-            ListInsrucciones();
+        if(current.IsInstruction())
+        {
+            Instruction instruction = ParseInstruction();
+            instruction.Execute();
+            NextLine();
         }
-        else  {
-            throw new Exception("Se esperaba un Spawn.");
+        else if(current.Kind == SyntaxKind.VariableToken)
+        {
+            SyntaxToken variable = current;
+            MatchKind(SyntaxKind.VariableToken);
+            MatchKind(SyntaxKind.ArrowToken);
+            Expression expression = ParseExpression();
+            Variable.Asing(variable.Text, expression);
+            NextLine();
+        }
+        else if(current.Kind ==  SyntaxKind.GoToToken)
+        {
+            MatchKind(SyntaxKind.GoToToken);
+            string tagName = current.Text;
+            MatchKind(SyntaxKind.CapturedTagToken);
+            MatchKind(SyntaxKind.CloseCorcheteToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression expression = ParseExpression();
+            if(expression.GetValue() is bool)
+            {
+                if((bool)expression.GetValue()) SetLine(TagIndex.GetLine(tagName));
+            }
+            else throw new ExecutionError("Se esperaba un valor de tipo bool");
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            NextLine();
+        }
+        else if(current.Kind == SyntaxKind.TagToken)
+        {
+            NextLine();
+        }
+        else if(current.Kind == SyntaxKind.EndOfLineToken)
+        {
+            NextLine();
         }
     }
 
-    public void ComandoSpawn()
+
+
+    public Instruction ParseInstruction()
     {
-        if(current.Kind == SyntaxKind.SpawnToken)  {
-            Match(SyntaxKind.SpawnToken);
-            PosSpawn();
+        if(current.Kind == SyntaxKind.SpawnToken)
+        {
+            MatchKind(SyntaxKind.SpawnToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression posX = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression posY = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new SpawnInstruction(posX, posY);
         }
-        else
-            throw new Exception("Se esperaba un Spawn.");
+        else if(current.Kind == SyntaxKind.FillToken)
+        {
+            MatchKind(SyntaxKind.FillToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new FillInstruction();
+        }
+        else if(current.Kind == SyntaxKind.ColorToken)
+        {
+            MatchKind(SyntaxKind.ColorToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression color = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new ColorInstruction(color);
+        }
+        else if(current.Kind == SyntaxKind.SizeToken)
+        {
+            MatchKind(SyntaxKind.SizeToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression size = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new SizeInstruction(size);
+        }
+        else if(current.Kind == SyntaxKind.DrawLineToken)
+        {
+            MatchKind(current.Kind);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression dirX = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression dirY = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression distance = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new DrawLineInstruction(dirX,dirY,distance);
+        }
+        else if(current.Kind == SyntaxKind.DrawCircleToken)
+        {
+            MatchKind(current.Kind);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression dirX = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression dirY = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression radius = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new DrawCircleInstruction(dirX,dirY,radius);
+        }
+        else if(current.Kind == SyntaxKind.DrawRectangleToken)
+        {
+            MatchKind(current.Kind);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression dirX = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression dirY = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression distance = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression width = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression height = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
+            return new DrawRectangleInstruction(dirX,dirY,distance,width,height);
+        }
+        else throw new SemanticError("Instruccion Invalida");
     }
 
-    public void ListInsrucciones()
+    private Expression ParseFunction()
     {
-        if(current.Kind == SyntaxKind.NewLineToken || current.Kind == SyntaxKind.EndOfFileToken)  {
-            ListInsruccionesD();
+        switch (current.Kind)
+        {
+            case SyntaxKind.GetActualXToken:
+            MatchKind(SyntaxKind.GetActualXToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new GetActualXFunction();
+
+            case SyntaxKind.GetActualYToken:
+            MatchKind(SyntaxKind.GetActualYToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new GetActualYFunction();
+
+            case SyntaxKind.GetCanvasSizeToken:
+            MatchKind(SyntaxKind.GetCanvasSizeToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new GetCanvasSizeFunction();
+
+            case SyntaxKind.GetColorCountToken:
+            MatchKind(SyntaxKind.GetColorCountToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression expression1 = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression expression2 = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression expression3 = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression expression4 = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression expression5 = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new GetColorCountFunction(expression1,expression2,expression3,expression4,expression5);
+
+            case SyntaxKind.IsBrushColorToken:
+            MatchKind(SyntaxKind.IsBrushColorToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression expression6 = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new IsBrushColorFunction(expression6);
+
+            case SyntaxKind.IsBrushSizeToken:
+            MatchKind(SyntaxKind.IsBrushSizeToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression expression7 = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new IsBrushSizeFunction(expression7);
+
+            case SyntaxKind.IsCanvasColorToken:
+            MatchKind(SyntaxKind.IsCanvasColorToken);
+            MatchKind(SyntaxKind.OpenParenthesisToken);
+            Expression expression8 = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression expression9 = ParseExpression();
+            MatchKind(SyntaxKind.ComaToken);
+            Expression expression10 = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            return new IsCanvasColorFunction(expression8,expression9,expression10);
+            default:
+            throw new ExecutionError("Funcion invalida o no definida");
         }
     }
-
-    public void PosSpawn()
-    {
-        if(current.Kind == SyntaxKind.OpenParenthesisToken)   {
-            Match(SyntaxKind.OpenParenthesisToken);
-            Expression();
-            Match(SyntaxKind.ComaToken);
-            Expression();
-            Match(SyntaxKind.CloseParenthesisToken);
-        }
-        else 
-            throw new Exception("Se esperaba un (.");
-    }
-
-    public void Expression()
-    {
-
-    }
-
-    public void ListInsruccionesD()
-    {
-        if(current.Kind == SyntaxKind.NewLineToken)  {
-            Match(SyntaxKind.NewLineToken);
-            Instruction();
-            ListInsruccionesD();
-        }
-        else if(current.Kind == SyntaxKind.EndOfFileToken)  {}
-        else
-            throw new Exception("Se esperaba cambio de linea.");
-    }
-
-    public void Instruction()
-    {
-
-    }*/
-
     private Expression PrimaryExpresion()
     {
         SyntaxToken token = current;
@@ -109,6 +250,20 @@ class Parser
         {
             MatchKind(SyntaxKind.MinusToken);
             return new BinaryOpExpression(new NumberExpression(0),token,ParseExpression());
+        }
+        else if(token.IsFunction())
+        {
+            return ParseFunction();
+        }
+        else if (token.Kind == SyntaxKind.StringToken)
+        {
+            MatchKind(SyntaxKind.StringToken);
+            return new StringExpression(token.Text);
+        }
+        else if(token.Kind == SyntaxKind.VariableToken)
+        {
+            MatchKind (SyntaxKind.VariableToken);
+            return new VariableExpression(token.Text);
         }
         else throw new SemanticError($"Factor inesperado :{token.Text}");
     }

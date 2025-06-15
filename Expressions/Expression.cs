@@ -17,9 +17,7 @@ public class NumberExpression : Expression
 
     public override object GetValue() => value;
     
-    public override void Evaluate()
-    {
-    }
+    public override void Evaluate(){}
 }
 
 public class BooleanExpression : Expression
@@ -52,12 +50,12 @@ public class BinaryOpExpression : Expression
     {
         var leftValue = left.GetValue();
         var rigthValue = rigth.GetValue();
-        if(operation.Type == TokenType.NumericOperation)
+        if(operation.IsNumericOperation())
         {
             if (leftValue is bool || rigthValue is bool)
             throw new ExecutionError("No es posible realizar la operacion con variables de tipo bool");
         }
-        if(operation.Type == TokenType.BooleanOperation)
+        if(operation.IsBooleanOperation())
         {
             if (leftValue is int || rigthValue is int) 
             throw new ExecutionError("No es posible realizar la operacion con variables de tipo int");
@@ -82,6 +80,8 @@ public class BinaryOpExpression : Expression
             return leftValue / rigthValue;
             case SyntaxKind.DoubleStarToken:
             return Math.Pow(leftValue,rigthValue);
+            case SyntaxKind.PorcentualToken:
+            return leftValue % rigthValue;
             case SyntaxKind.EqualsToken:
             return leftValue == rigthValue;
             case SyntaxKind.NotEqualsToken:
@@ -104,66 +104,39 @@ public class BinaryOpExpression : Expression
         }
     }
 }
-public abstract class Function : Expression
+
+public class StringExpression : Expression
 {
+    private readonly string value;
 
-}
-public class GetActualXFunction : Function
-{
-    public GetActualXFunction()
+    public StringExpression(string value)
     {
-
+        this.value = value;
     }
-    public override object GetValue() => Canvas.GetActualX();
-    public override void Evaluate()
-    {
-    }
-
-}
-public class GetActualYFunction : Function
-{
-    public GetActualYFunction()
-    {
-
-    }
-    public override object GetValue() => Canvas.GetActualY();
     public override void Evaluate(){}
-}
-public class GetCanvasSizeFunction : Function
-{
-    public GetCanvasSizeFunction(){}
-    public override object GetValue() => Canvas.GetCanvasSize();
-    public override void Evaluate(){}
-}
-public class GetColorCountFunction : Function
-{
-    private readonly Expression color;
-    private readonly Expression startX;
-    private readonly Expression startY;
-    private readonly Expression endX;
-    private readonly Expression endY;
 
-    public GetColorCountFunction(Expression color, Expression startX, Expression startY, Expression endX, Expression endY)
+    public override object GetValue() => value;
+}
+
+public class VariableExpression : Expression
+{
+    private readonly string name;
+
+    public VariableExpression(string name)
     {
-        this.color = color;
-        this.startX = startX;
-        this.startY = startY;
-        this.endX = endX;
-        this.endY = endY;
+        this.name = name;
     }
+    public override void Evaluate(){}
     public override object GetValue()
     {
-        Evaluate();
-        return Canvas.GetColorCount((string)color.GetValue(), (int)startX.GetValue(), 
-        (int)startY.GetValue(), (int)endX.GetValue(), (int)endY.GetValue());
-    }
-    public override void Evaluate()
-    {
-        if(color.GetValue() is string
-        && startX.GetValue() is int
-        && startY.GetValue() is int
-        && endX.GetValue() is int
-        && endY.GetValue() is int) return;
-        else throw new ExecutionError("");
+        if(Variable.Index.ContainsKey(name))
+        {
+            return Variable.Index[name].GetValue();
+        }
+        else throw new ExecutionError($"La variable {name} no tiene asignado un valor"); 
     }
 }
+
+
+
+
