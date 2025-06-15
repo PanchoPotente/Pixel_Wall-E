@@ -123,7 +123,6 @@ class Lexer
         else if(Current == ']') return new SyntaxToken("]",SyntaxKind.CloseCorcheteToken, null);
         else if(Current == '\n') 
         {
-            line++;
             return new SyntaxToken("\n", SyntaxKind.EndOfLineToken, null);
         }
         
