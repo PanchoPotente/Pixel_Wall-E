@@ -5,7 +5,7 @@ using Godot;
 class Lexer
 {
     private string[] allLines;
-    private int line;
+    public int line ;
     private string _text{get => allLines[line];}
     private int _position;
     private char Current
@@ -121,6 +121,7 @@ class Lexer
             return new SyntaxToken("!=", SyntaxKind.NotEqualsToken, null);
         }
         else if(Current == ']') return new SyntaxToken("]",SyntaxKind.CloseCorcheteToken, null);
+        else if(Current == '[' ) return CompleteTag(); 
         else if(Current == '\n') 
         {
             return new SyntaxToken("\n", SyntaxKind.EndOfLineToken, null);

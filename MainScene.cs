@@ -6,6 +6,8 @@ public partial class MainScene : Node2D
 	[Export] TileMapLayer tileMap;
 	[Export] Camera2D camera;
 	[Export] CodeEdit codeEdit;
+	[Export] LineEdit lineEdit;
+	[Export] Label label;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -42,27 +44,35 @@ public partial class MainScene : Node2D
 		string code = codeEdit.Text;
 		Lexer lexer = new Lexer(code);
 		SyntaxToken[][] syntaxTokens = new SyntaxToken[0][];
-		syntaxTokens = lexer.GetAllLines();
-		GD.Print(syntaxTokens.Length);
-
+		try
+		{
+			syntaxTokens = lexer.GetAllLines();
+		}
+		catch(Exception error)
+		{
+			ReportError($"{error.GetType()} linea: {lexer.line} {error.Message}");
+		}
 		
 		ExpressionParser parser = new ExpressionParser(syntaxTokens);
-		
+		try
 		{
 			for (int i = 0; i < syntaxTokens.Length; i++)
 			{
 				parser.ParseLine();
 			}
 		}
+		catch(Exception error)
+		{
+			ReportError($"{error.GetType()} linea: {parser.line} {error.Message}");
+		}
 		UpdateCanvas();
-		PrintTokens(syntaxTokens);
-
 	}
 	private void Reset()
 	{
 		Canvas.Reset();
 		TagIndex.Reset();
 		Variable.Reset();
+		label.Text = "";
 	}
 	public void PrintTokens(SyntaxToken[][] syntaxTokens)
 	{
@@ -76,17 +86,20 @@ public partial class MainScene : Node2D
 			GD.Print(line);
 		}
 	}
-	public void PrintCanvas()
-	{
 
-		for (int i = 0; i < Canvas.WorkZone.GetLength(0); i++)
+	public void ResizeButton()
+	{
+		if(int.TryParse(lineEdit.Text, out int result))
 		{
-			string line = ""; 
-			for (int j = 0; j < Canvas.WorkZone.GetLength(1); j++)
-			{
-				line += $" {Canvas.WorkZone[i,j]}  ";
-			}
-			GD.Print(line);
+			Canvas.CanvasSize = result;
+			Canvas.Reset();
+			AdjustCamera();
+			UpdateCanvas();
 		}
+	}
+
+	private void ReportError(string error)
+	{
+		label.Text = error;
 	}
 }

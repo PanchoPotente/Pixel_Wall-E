@@ -7,7 +7,8 @@ public partial class Canvas : Node
     public static int PositionY = 0;
     public static Color BrushColor = Color.Transparent;
     public static int BrushSize = 1;
-    public static Color[,] WorkZone = ClearCanvas(10);
+    public static int CanvasSize = 100;
+    public static Color[,] WorkZone = ClearCanvas(CanvasSize);
 
     public static void Reset()
     {
@@ -15,7 +16,7 @@ public partial class Canvas : Node
         PositionY = 0;
         BrushColor = Color.Transparent;
         BrushSize = 1;
-        WorkZone = ClearCanvas(10);
+        WorkZone = ClearCanvas(CanvasSize);
     }
     public static void Spawn(int x, int y)
     {
@@ -30,7 +31,7 @@ public partial class Canvas : Node
     {
         return x < WorkZone.GetLength(0) && x >= 0 && y < WorkZone.GetLength(1) && y >= 0;
     }
-    private static Color[,] ClearCanvas(int x)
+    public static Color[,] ClearCanvas(int x)
     {
         Color[,] colors = new Color[x,x]; 
         for (int i = 0; i < x; i++)

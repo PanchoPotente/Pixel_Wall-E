@@ -7,7 +7,7 @@ class ExpressionParser
 {
 
     private readonly SyntaxToken[][] code;
-    private int line = 0;
+    public int line = 0;
     private SyntaxToken[] tokens {get => code[line];}
     private int position = 0;
 

@@ -19,11 +19,13 @@ texture_region_size = Vector2i(1, 1)
 tile_size = Vector2i(1, 1)
 sources/1 = SubResource("TileSetAtlasSource_1f5dy")
 
-[node name="MainScene" type="Node2D" node_paths=PackedStringArray("tileMap", "camera", "codeEdit")]
+[node name="MainScene" type="Node2D" node_paths=PackedStringArray("tileMap", "camera", "codeEdit", "lineEdit", "label")]
 script = ExtResource("1_y2xsy")
 tileMap = NodePath("WorkZone")
 camera = NodePath("Camera2D")
 codeEdit = NodePath("CanvasLayer/CodeEdit")
+lineEdit = NodePath("CanvasLayer/VBoxContainer/HBoxContainer/LineEdit")
+label = NodePath("CanvasLayer/VBoxContainer/Label")
 
 [node name="WorkZone" type="TileMapLayer" parent="."]
 tile_set = SubResource("TileSet_5nokp")
@@ -53,8 +55,25 @@ grow_horizontal = 0
 layout_mode = 2
 text = "Execute"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 12
+autowrap_mode = 3
+max_lines_visible = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+custom_minimum_size = Vector2(80, 40)
+layout_mode = 2
+
+[node name="Resize" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Resize"
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+placeholder_text = "size"
+max_length = 3
+virtual_keyboard_type = 2
 
 [node name="CodeEdit" type="CodeEdit" parent="CanvasLayer"]
 offset_left = 662.0
@@ -64,3 +83,4 @@ offset_bottom = 498.0
 line_folding = true
 
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Execute" to="." method="ExecuteButton"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/Resize" to="." method="ResizeButton"]
