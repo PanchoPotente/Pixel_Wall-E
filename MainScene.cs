@@ -107,11 +107,11 @@ public partial class MainScene : Node2D
 	}
 	public void SaveButton()
 	{
-		File.Create(SaveDirectory.Text);
+		File.WriteAllText(SaveDirectory.Text,codeEdit.Text);
 	}
 	public void LoadButton()
 	{
-		string code = File.ReadAllText(LoadDirectory.Text);
+		string code = File.ReadAllText(LoadDirectory.Text, Encoding.UTF8);
 		codeEdit.Text = code;
 	}
 }
