@@ -10,6 +10,7 @@ class ExpressionParser
     public int line = 0;
     private SyntaxToken[] tokens {get => code[line];}
     private int position = 0;
+    private bool spawChecker = false;
 
     SyntaxToken current {get => tokens[position];}
     public ExpressionParser(SyntaxToken[][] code)
@@ -31,6 +32,7 @@ class ExpressionParser
     }
     public void Parse()
     {
+        if(code[0][0].Kind != SyntaxKind.SpawnToken) throw new SemanticError("Todo codigo valido debe empezar con una instruccion Spawn()");
         while (line < code.Length)
         {
             ParseLine();
@@ -90,6 +92,7 @@ class ExpressionParser
     {
         if(current.Kind == SyntaxKind.SpawnToken)
         {
+            if(spawChecker) throw new SemanticError("Solo puede haber una instruccion Spawn()");
             MatchKind(SyntaxKind.SpawnToken);
             MatchKind(SyntaxKind.OpenParenthesisToken);
             Expression posX = ParseExpression();
@@ -97,6 +100,7 @@ class ExpressionParser
             Expression posY = ParseExpression();
             MatchKind(SyntaxKind.CloseParenthesisToken);
             MatchKind(SyntaxKind.EndOfLineToken);
+            spawChecker = true;
             return new SpawnInstruction(posX, posY);
         }
         else if(current.Kind == SyntaxKind.FillToken)

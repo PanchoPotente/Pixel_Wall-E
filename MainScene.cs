@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.IO;
+using System.Text;
 
 public partial class MainScene : Node2D
 {
@@ -8,6 +10,9 @@ public partial class MainScene : Node2D
 	[Export] CodeEdit codeEdit;
 	[Export] LineEdit lineEdit;
 	[Export] Label label;
+	[Export] LineEdit SaveDirectory;
+	[Export] LineEdit LoadDirectory;
+
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -99,5 +104,14 @@ public partial class MainScene : Node2D
 	private void ReportError(string error)
 	{
 		label.Text = error;
+	}
+	public void SaveButton()
+	{
+		File.Create(SaveDirectory.Text);
+	}
+	public void LoadButton()
+	{
+		string code = File.ReadAllText(LoadDirectory.Text);
+		codeEdit.Text = code;
 	}
 }
