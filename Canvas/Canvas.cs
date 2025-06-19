@@ -124,12 +124,35 @@ public partial class Canvas : Node
     {
         if(radius <= 0) throw new ExecutionError("El radio debe tener un valor mayor o igual que cero");
         if((dirX != 1 && dirX != 0 && dirX != -1 )|| (dirY != 1 && dirY != -1 && dirY != 0)  )
-        throw new ExecutionError("Los valores de direccion de la Instruccion DrawLine() deben ser 0 , 1 , -1");
+        throw new ExecutionError("Los valores de direccion de la Instruccion DrawLine() deben ser 0 , 1 o -1");
         PositionX += radius * dirX;
         PositionY += radius * dirY; 
         if(IsInRange(PositionX,PositionY))
         {
-
+            int x = radius;
+            int y = 0;
+            int error = 0;
+            while (x >= y)
+            {
+                DrawPoint(PositionX + x, PositionY + y);
+                DrawPoint(PositionX + y, PositionY + x);
+                DrawPoint(PositionX - x, PositionY + y);
+                DrawPoint(PositionX - y, PositionY + x);
+                DrawPoint(PositionX + y, PositionY - x);
+                DrawPoint(PositionX - y, PositionY - x);
+                DrawPoint(PositionX - x, PositionY - y);
+                DrawPoint(PositionX + x, PositionY - y);
+                if(error <= 0)
+                {
+                    y += 1;
+                    error += 2 * y + 1;
+                }
+                if(error > 0)
+                {
+                    x -= 1;
+                    error -= 2 * x + 1;
+                }
+            }
         }
         else throw new ExecutionError("La posicion no puede quedar fuera de los limites del Canvas");
     }
@@ -184,8 +207,6 @@ public partial class Canvas : Node
             && mask[posX + directions[i][0], posY + directions[i][1]] == false) 
             Fill(posX + directions[i][0], posY + directions[i][1], mask, color);
         }
-        
-        
     }
 
     public static int GetActualX() => PositionX;

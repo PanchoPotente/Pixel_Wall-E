@@ -17,7 +17,8 @@ public class SyntaxToken
     public bool IsInstruction()
     {
         if(Kind == SyntaxKind.SpawnToken || Kind == SyntaxKind.ColorToken || Kind == SyntaxKind.SizeToken
-        || Kind == SyntaxKind.DrawLineToken || Kind == SyntaxKind.DrawCircleToken || Kind == SyntaxKind.DrawRectangleToken) 
+        || Kind == SyntaxKind.DrawLineToken || Kind == SyntaxKind.DrawCircleToken || Kind == SyntaxKind.DrawRectangleToken
+        || Kind == SyntaxKind.FillToken) 
         return true;
         else return false;
     }
@@ -82,12 +83,9 @@ public class SyntaxToken
     GreatToken,
     BadToken,
     ComaToken,
-    NewLineToken,
-    EndOfFileToken,
     StringToken,
     NotEqualsToken,
     EndOfLineToken,
-    OpenCorcheteToken,
     CloseCorcheteToken,
     CapturedTagToken
 }

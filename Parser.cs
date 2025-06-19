@@ -29,7 +29,13 @@ class ExpressionParser
         line = n;
         position = 0;
     }
-
+    public void Parse()
+    {
+        while (line < code.Length)
+        {
+            ParseLine();
+        }
+    }
 
     public void ParseLine()
     {
@@ -56,23 +62,26 @@ class ExpressionParser
             MatchKind(SyntaxKind.CloseCorcheteToken);
             MatchKind(SyntaxKind.OpenParenthesisToken);
             Expression expression = ParseExpression();
+            MatchKind(SyntaxKind.CloseParenthesisToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
             if(expression.GetValue() is bool)
             {
                 if((bool)expression.GetValue()) SetLine(TagIndex.GetLine(tagName));
             }
             else throw new ExecutionError("Se esperaba un valor de tipo bool");
-            MatchKind(SyntaxKind.CloseParenthesisToken);
-            MatchKind(SyntaxKind.EndOfLineToken);
-            NextLine();
         }
         else if(current.Kind == SyntaxKind.TagToken)
         {
+            MatchKind(SyntaxKind.TagToken);
+            MatchKind(SyntaxKind.EndOfLineToken);
             NextLine();
         }
         else if(current.Kind == SyntaxKind.EndOfLineToken)
         {
+            MatchKind(SyntaxKind.EndOfLineToken);
             NextLine();
         }
+        else throw new ExecutionError("Toda linea valida debe empezar con una instruccion, una asignacion o una etiqueta");
     }
 
 

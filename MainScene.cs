@@ -47,19 +47,17 @@ public partial class MainScene : Node2D
 		try
 		{
 			syntaxTokens = lexer.GetAllLines();
+			PrintTokens(syntaxTokens);
 		}
 		catch(Exception error)
 		{
 			ReportError($"{error.GetType()} linea: {lexer.line} {error.Message}");
 		}
-		
+
 		ExpressionParser parser = new ExpressionParser(syntaxTokens);
 		try
 		{
-			for (int i = 0; i < syntaxTokens.Length; i++)
-			{
-				parser.ParseLine();
-			}
+			parser.Parse();
 		}
 		catch(Exception error)
 		{

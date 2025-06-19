@@ -10,7 +10,10 @@ public class FillInstruction : Instruction
 {
     public FillInstruction(){}
     public override void Evaluate(){}
-    public override void Execute() => Canvas.Fill();
+    public override void Execute() 
+    { 
+        Canvas.Fill();
+    }
 }
 public class SpawnInstruction : Instruction
 {
@@ -95,7 +98,6 @@ public class DrawLineInstruction : Instruction
     }
     public override void Execute()
     {
-        GD.Print("fffffffffffffffffffffffffffffffffffffffffff");
         Evaluate();
         Canvas.DrawLine((int)dirX.GetValue(), (int)dirY.GetValue(), (int)distance.GetValue());
     }
@@ -121,7 +123,7 @@ public class DrawCircleInstruction : Instruction
     }
     public override void Execute()
     {
-        Execute();
+        Evaluate();
         Canvas.DrawCircle((int)dirX.GetValue(), (int)dirY.GetValue(), (int)radius.GetValue());
     }
 }
